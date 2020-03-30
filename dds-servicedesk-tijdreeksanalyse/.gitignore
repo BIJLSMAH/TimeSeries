@@ -1,0 +1,4 @@
+# Negeer alle bestanden in de data map.
+/data/*
+
+.Rproj.user
