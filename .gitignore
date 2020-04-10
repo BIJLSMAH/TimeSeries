@@ -1,4 +1,5 @@
 # Negeer alle bestanden in de data map.
 /data/*
-
+/Hessel, TimeSeries/data/*
+/Hessel, TimeSeries/grafieken/*
 .Rproj.user

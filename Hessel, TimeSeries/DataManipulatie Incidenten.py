@@ -36,25 +36,37 @@ def monthlist(dates):
     mlist = []
     for tot_m in range(total_months(start)-1, total_months(end)):
         y, m = divmod(tot_m, 12)
-        mlist.append(datetime(y, m+1, 1).year * 100 + datetime(y, m+1,1).month)
+        mlist.append(datetime(y, m+1 ,1))
     return mlist
 
 # Doorloop de maanden en verzamel maandgegevens over de totalen
 dates=["2013-06-01", "2020-01-01"]
 mndLijst = monthlist(dates)
-mndOpen = [0]
 
 # Maak er een dataframe van die kan worden aangevuld
 
-dfOpen = pd.DataFrame(list(zip(mndOpen)), 
-                  columns =['open'],
-                  index=mndLijst) 
+dfOpen = pd.DataFrame(columns =['maand', 'datum', 'open']) 
 
+nieuw_record = pd.Series({'maand': 0, 'datum': 0, 'open': 0 })
 for maand in mndLijst:
-    dfOpen.loc[maand] = len(df[(df.mndAangemeld <= maand) & (df.mndAfgemeld >= maand)])
+    jaarmaand = (maand.year * 100) + maand.month
+    nieuw_record['maand'] = jaarmaand
+    nieuw_record['datum']= str(maand)
+    nieuw_record['open'] = len(df[(df.mndAangemeld <= jaarmaand) & (df.mndAfgemeld >= jaarmaand)])
+    dfOpen = dfOpen.append(nieuw_record, ignore_index=True)
 
-dfOpen.plot()
+dfOpen.set_index('datum')
+#%% plot de resultaten en sla ze op voor een vervolgbewerking
 
+import matplotlib.pyplot as plt
+import numpy as np
+import pickle
+
+x = dfOpen['datum']
+y = dfOpen['open']
+plt.plot(x,y)
+
+pickle.dump(dfOpen, open('TSeries','ab'))
 #%% Alleen de storingen filteren
 
 dfstoring = df[df['Soort Incident']=='Storing']
