@@ -38,7 +38,7 @@ from pandas.plotting import register_matplotlib_converters
 register_matplotlib_converters()
 
 #mpl.style.use('fivethirtyeight')
-os.chdir(r'C:\Users\Administrator\Documents\Python Scripts')
+os.chdir(r'C:\Users\Administrator\Documents\GitHub\DS\Hessel, TimeSeries')
 series = read_csv(r'data\MAAND OPEN PRD 2014-2019.csv', header=0, index_col=0, parse_dates=True, squeeze=True)
 pp.figure(figsize=(8,3), dpi=100)
 pp.title('Openstaande Incidenten Per Maand')
@@ -886,8 +886,8 @@ predictionsn.append(train.loc[max(train.index)])
 for i in range(len(predictions)):
     predictionsn.append(predictions[i])
 
-testf = df[int(len(train))-1:int(len(train))]
-testn = testf[0]
+testf = X[int(len(train))-1:int(len(train))]
+testn = testf
 # testn = pd.DataFrame(testn)
 testn = testn.append(test)
     
