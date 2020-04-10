@@ -24,12 +24,52 @@ print('statsmodels: %s' % statsmodels.__version__)
 # separate out a validation dataset
 
 import os
-from pandas import read_csv
+import pandas as pd
+import numpy as np
+import seaborn as sns
+import matplotlib as mpl
+import matplotlib.pyplot as figuur
 
-os.chdir(r'C:\Users\Administrator\Documents\Python Scripts')
+from matplotlib import pyplot as pp
+from pandas import DataFrame
+from pandas import Grouper
+from pandas import read_csv
+from pandas.plotting import register_matplotlib_converters
+register_matplotlib_converters()
+
+#mpl.style.use('fivethirtyeight')
+os.chdir(r'C:\Users\Administrator\Documents\GitHub\DS\Hessel, TimeSeries')
 series = read_csv(r'data\MAAND OPEN PRD 2014-2019.csv', header=0, index_col=0, parse_dates=True, squeeze=True)
+pp.figure(figsize=(8,3), dpi=100)
+pp.title('Openstaande Incidenten Per Maand')
+series.plot()
+pp.xlabel('jaren')
+pp.ylabel('incidenten')
+pp.tight_layout(pad=3.0)
+pp.show()
+
+groups = series['2014':'2019'].groupby(Grouper(freq='A'))
+years = DataFrame()
+for name, group in groups:
+	years[name.year] = group.values
+# Box and Whisker Plots
+pp.figure(figsize=(6,4), dpi=100, edgecolor='k')
+years.boxplot()
+pp.title('Trend')
+pp.tight_layout(pad=3.0)
+pp.show()
+
+years=years.transpose()
+pp.figure(figsize=(6,4), dpi=100, edgecolor='k')
+years.boxplot()
+pp.tight_layout(pad=3.0)
+pp.xticks([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], ['jan', 'feb', 'mrt', 'apr', 'mei', 'jun', 'jul', 'aug','sep','okt','nov','dec'])
+pp.title('Seizoen')
+pp.show()
+
 
 # isoleer het laatste jaar (12 maanden) in een afzonderlijke data/testset
+
 split_point = len(series) - 12
 dataset, validation = series[0:split_point], series[split_point:]
 print('Dataset %d, Validation %d' % (len(dataset), len(validation)))
@@ -128,7 +168,12 @@ series = read_csv(r'data\dataset.csv', header=None, index_col=0, parse_dates=Tru
 print(series.describe())
 
 # Line Plot
+pp.figure(figsize=(8,3), dpi=100)
+pp.title('Openstaande Incidenten Per Maand')
 series.plot()
+pp.xlabel('jaren')
+pp.ylabel('incidenten')
+pp.tight_layout(pad=3.0)
 pp.show()
 
 # Seasonal Line Plots
@@ -141,15 +186,18 @@ for name, group in groups:
 	pp.subplot((n_groups*100) + 10 + i)
 	i += 1
 	pp.plot(group)
-pp.show()
+
 
 # Density Plots
-pp.figure(1)
-pp.subplot(211)
+fig= pp.figure(figsize=(6,8), dpi=100, edgecolor='k')
+ax1 = fig.add_subplot(211)
+ax1.title.set_text('Histogram Verdeling Maandelijkse Incidenten')
 series.hist()
-pp.subplot(212)
+ax2 = fig.add_subplot(212)
+ax2.title.set_text('Verdeling Maandelijkse Incidenten')
 series.plot(kind='kde')
-pp.show()
+fig.tight_layout(pad=2.0)
+fig.show()
 
 # Box and Whisker Plots
 groups = series['2014':'2019'].groupby(Grouper(freq='A'))
@@ -157,6 +205,7 @@ years = DataFrame()
 for name, group in groups:
 	years[name.year] = group.values
 years.boxplot()
+pp.tight_layout(pad=3.0)
 pp.show()
 #%% ARIMA
 #   1. Manually Configure ARIMA
@@ -192,7 +241,7 @@ print('Critical Values:')
 for key, value in result[4].items():
 	print('\t%s: %.3f' % (key, value))
 
-if result[1] <= 0.05:
+if result[1] <= 0.01:
     df = pandas.DataFrame(X)
     df.index = series.index[:]
     df.to_csv(r'data\stationary.csv', header=False)
@@ -220,7 +269,10 @@ else:
     stationary.to_csv(r'data\stationary.csv', header=False)
 
 # plot
+
 stationary.plot()
+pyplot.xlabel('jaar')
+pyplot.ylabel('open')
 pyplot.show()
 #%% De te gebruiken differenced and reverse_differenced
 #   dataset is nu aangemaakt en kan als input dienen
@@ -800,8 +852,8 @@ yhat = float(yhat)
 yhat = bias + inverse_difference(history, yhat, months_in_year)
 predictions.append(yhat[0])
 ses.append(se)
-confsl.append(conf[0,0])
-confsh.append(conf[0,1])
+confsl.append(inverse_difference(history, conf[0,0], months_in_year))
+confsh.append(inverse_difference(history, conf[0,1], months_in_year))
 history.append(validation[0])
 print('>Predicted=%.3f, Expected=%3.f' % (yhat[0], validation[0]))
 
@@ -816,8 +868,8 @@ for i in range(1, len(validation)):
 	yhat = bias + inverse_difference(history, yhat, months_in_year)
 	predictions.append(yhat[0])
 	ses.append(se)
-	confsl.append(conf[0,0])
-	confsh.append(conf[0,1])
+	confsl.append(inverse_difference(history, conf[0,0], months_in_year))
+	confsh.append(inverse_difference(history, conf[0,1], months_in_year))
 	# observation
 	obs = validation[i]
 	history.append(obs)
@@ -834,8 +886,8 @@ predictionsn.append(train.loc[max(train.index)])
 for i in range(len(predictions)):
     predictionsn.append(predictions[i])
 
-testf = df[int(len(train))-1:int(len(train))]
-testn = testf[0]
+testf = X[int(len(train))-1:int(len(train))]
+testn = testf
 # testn = pd.DataFrame(testn)
 testn = testn.append(test)
     
